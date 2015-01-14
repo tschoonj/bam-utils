@@ -12,7 +12,21 @@
 class Chi {
 public:
 	Chi(std::string filename);
+	Chi() {};
 	virtual ~Chi() {};
+	double *GetXPtr() {
+		if (x_values.size() == 0)
+			return 0;
+		return &x_values[0];
+	}
+	double *GetYPtr() {
+		if (y_values.size() == 0)
+			return 0;
+		return &y_values[0];
+	}
+	int GetSize() {
+		return x_values.size();
+	}
 
 private:
 	std::string x_title;		

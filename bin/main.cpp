@@ -3,7 +3,6 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include "chi2dat.h"
-#include <xmi_msim.h>
 
 
 

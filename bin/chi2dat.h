@@ -11,22 +11,53 @@
 #include <gtkmm/grid.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/buttonbox.h>
+#include <gtkmm/scrolledwindow.h>
 #include <iomanip>
 #include <iostream>
+#include "chifile.h"
 
 
 
 
 
 class Chi2DatWindow : public Gtk::Window {
+public:
 	Chi2DatWindow();
 	virtual ~Chi2DatWindow();
 
 	Gtk::Grid grid;
-	
-	
+	Gtk::Button convert;
+	class ChiFilesColumns : public Gtk::TreeModel::ColumnRecord {
+		public:
+			ChiFilesColumns() {
+				add(col_filename_full);
+				add(col_filename_basename);
+				add(col_filename_dirname);
+				add(col_chi);
+			}
+			Gtk::TreeModelColumn<Glib::ustring> col_filename_full;
+			Gtk::TreeModelColumn<Glib::ustring> col_filename_basename;
+			Gtk::TreeModelColumn<Glib::ustring> col_filename_dirname;
+			Gtk::TreeModelColumn<Chi> col_chi;
+	};
+	ChiFilesColumns chi_files_columns;
+	Gtk::Button open;
+	Gtk::TreeView tv;
+	Glib::RefPtr<Gtk::ListStore> model;
+	Gtk::ScrolledWindow sw;
 
-}
+	Gtk::Entry start_value;
+	Gtk::Entry step_size;
+	Gtk::Entry nsteps;
+	
+	
+	bool on_delete_event(GdkEventAny* event);	
+	void on_open_clicked();
+	void on_convert_clicked();
+	bool on_backspace_clicked(GdkEventKey *key);
+	double get_double_from_entry(Gtk::Entry entry);
+	template<typename T> T get_value_from_entry(Gtk::Entry &entry);
+};
 
 
 

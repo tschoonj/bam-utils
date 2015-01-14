@@ -1,4 +1,4 @@
-AC_INIT([bam-utils],[0.1],[tom.schoonjans@me.com],,[http://github.com/tschoonj/bamutilss])
+AC_INIT([bam-utils],[0.1],[tom.schoonjans@me.com],,[https://github.com/tschoonj/bam-utils])
 AC_PREREQ([2.60])
 #AC_CONFIG_SRCDIR([src/main/xrmc_main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
