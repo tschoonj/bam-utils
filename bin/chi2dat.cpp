@@ -12,7 +12,7 @@
 #include <cmath>
 #include <glibmm/convert.h>
 
-Chi2DatWindow::Chi2DatWindow() : convert("Convert!") {
+Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<sub>c</sub>"), RadioButton2("2θ<sub>m</sub> → 2θ<sub>c</sub>"), RadioButton3("2θ<sub>m</sub> → q") {
 	Gtk::Label *label;
 
 	//initialize window properly
@@ -30,7 +30,7 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!") {
 	tv.append_column("Filename", chi_files_columns.col_filename_basename);
 	sw.add(tv);
 	sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-	grid.attach(sw, 0, 0, 1, 3);
+	grid.attach(sw, 0, 0, 1, 10);
 	sw.set_vexpand();
 	sw.set_hexpand();
 
@@ -49,6 +49,53 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!") {
 	nsteps.set_text("1000");
 	grid.attach(nsteps, 2, 2, 1, 1);
 
+	//radiobuttons and friends
+	Gtk::RadioButton::Group group = RadioButton1.get_group();
+	RadioButton2.set_group(group);
+	RadioButton3.set_group(group);	
+	dynamic_cast<Gtk::Label*>(RadioButton1.get_child())->set_use_markup();
+	dynamic_cast<Gtk::Label*>(RadioButton2.get_child())->set_use_markup();
+	dynamic_cast<Gtk::Label*>(RadioButton3.get_child())->set_use_markup();
+
+	grid.attach(RadioButton1, 1, 3, 2, 1);
+	button1_label1.set_markup("λ<sub>c</sub>");
+	button1_label1.set_margin_start(10);
+	grid.attach(button1_label1, 1, 4, 1, 1);
+	button1_entry1.set_text("0.15405929");
+	grid.attach(button1_entry1, 2, 4, 1, 1);
+	
+	
+	grid.attach(RadioButton2, 1, 5, 2, 1);
+	button2_label1.set_markup("λ<sub>c</sub>");
+	button2_label1.set_margin_start(10);
+	grid.attach(button2_label1, 1, 6, 1, 1);
+	button2_entry1.set_text("0.15405929");
+	grid.attach(button2_entry1, 2, 6, 1, 1);
+	button2_label2.set_markup("λ<sub>m</sub>");
+	button2_label2.set_margin_start(10);
+	grid.attach(button2_label2, 1, 7, 1, 1);
+	button2_entry2.set_text("1.0");
+	grid.attach(button2_entry2, 2, 7, 1, 1);
+
+	grid.attach(RadioButton3, 1, 8, 2, 1);
+	button3_label1.set_markup("λ<sub>m</sub>");
+	button3_label1.set_margin_start(10);
+	grid.attach(button3_label1, 1, 9, 1, 1);
+	button3_entry1.set_text("1.0");
+	grid.attach(button3_entry1, 2, 9, 1, 1);
+
+	RadioButton1.set_active();
+	button2_entry1.set_sensitive(false);
+	button2_label1.set_sensitive(false);	
+	button2_entry2.set_sensitive(false);	
+	button2_label2.set_sensitive(false);	
+	button3_entry1.set_sensitive(false);	
+	button3_label1.set_sensitive(false);	
+
+	RadioButton1.signal_toggled().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_radio_toggled));
+	RadioButton2.signal_toggled().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_radio_toggled));
+	RadioButton3.signal_toggled().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_radio_toggled));
+
 
 	open.set_image_from_icon_name("document-open");
         open.set_vexpand(false);
@@ -56,7 +103,7 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!") {
         open.set_valign(Gtk::ALIGN_CENTER);
         open.set_halign(Gtk::ALIGN_CENTER);
 	open.signal_clicked().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_open_clicked));
-	grid.attach(open, 0, 3, 1, 1);
+	grid.attach(open, 0, 10, 1, 1);
 
         convert.set_vexpand(false);
         convert.set_hexpand(false);
@@ -64,7 +111,7 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!") {
         convert.set_halign(Gtk::ALIGN_CENTER);
 	convert.set_sensitive(false);
 	convert.signal_clicked().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_convert_clicked));
-	grid.attach(convert, 1, 3, 2, 1);
+	grid.attach(convert, 1, 10, 2, 1);
 
 
 	signal_delete_event().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_delete_event));
@@ -102,7 +149,8 @@ void Chi2DatWindow::on_convert_clicked() {
 		std::cout << "start_value_d: " << start_value_d << std::endl;
 	}
 	catch (std::exception &e) {
-		Gtk::MessageDialog mdialog(*this, Glib::ustring("Start value: ")+e.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+		Gtk::MessageDialog mdialog(*this, Glib::ustring("Start value: "), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+		mdialog.set_secondary_text(Glib::ustring(e.what()));
                 mdialog.run();
 		return;
 	}
@@ -111,7 +159,8 @@ void Chi2DatWindow::on_convert_clicked() {
 		std::cout << "step_size_d: " << step_size_d << std::endl;
 	}
 	catch (std::exception &e) {
-		Gtk::MessageDialog mdialog(*this, Glib::ustring("Step size: ")+e.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+		Gtk::MessageDialog mdialog(*this, Glib::ustring("Error processing Step size: "), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+		mdialog.set_secondary_text(Glib::ustring(e.what()));
                 mdialog.run();
 		return;
 	}
@@ -120,9 +169,55 @@ void Chi2DatWindow::on_convert_clicked() {
 		std::cout << "nsteps_i: " << nsteps_i << std::endl;
 	}
 	catch (std::exception &e) {
-		Gtk::MessageDialog mdialog(*this, Glib::ustring("# steps: ")+e.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+		Gtk::MessageDialog mdialog(*this, Glib::ustring("Error processing #steps: "), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+		mdialog.set_secondary_text(Glib::ustring(e.what()));
                 mdialog.run();
 		return;
+	}
+
+	double lambda_c, lambda_m;
+
+	if (RadioButton1.get_active()) {
+		try {
+			lambda_c = get_value_from_entry<double>(button1_entry1);
+		}
+		catch (std::exception &e) {
+			Gtk::MessageDialog mdialog(*this, Glib::ustring("Error processing λ<sub>c</sub>"), true, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+			mdialog.set_secondary_text(Glib::ustring(e.what()));
+                	mdialog.run();
+			return;
+		}
+	}
+	else if (RadioButton2.get_active()) {
+		try {
+			lambda_c = get_value_from_entry<double>(button2_entry1);
+		}
+		catch (std::exception &e) {
+			Gtk::MessageDialog mdialog(*this, Glib::ustring("Error processing λ<sub>c</sub>"), true, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+			mdialog.set_secondary_text(Glib::ustring(e.what()));
+                	mdialog.run();
+			return;
+		}
+		try {
+			lambda_m = get_value_from_entry<double>(button2_entry2);
+		}
+		catch (std::exception &e) {
+			Gtk::MessageDialog mdialog(*this, Glib::ustring("Error processing λ<sub>m</sub>"), true, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+			mdialog.set_secondary_text(Glib::ustring(e.what()));
+                	mdialog.run();
+			return;
+		}
+	}
+	else if (RadioButton3.get_active()) {
+		try {
+			lambda_m = get_value_from_entry<double>(button3_entry1);
+		}
+		catch (std::exception &e) {
+			Gtk::MessageDialog mdialog(*this, Glib::ustring("Error processing λ<sub>m</sub>"), true, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+			mdialog.set_secondary_text(Glib::ustring(e.what()));
+                	mdialog.run();
+			return;
+		}
 	}
 
 
@@ -136,7 +231,15 @@ void Chi2DatWindow::on_convert_clicked() {
 		gsl_interp_accel *acc = gsl_interp_accel_alloc ();
     		gsl_interp *interp = gsl_interp_alloc (gsl_interp_cspline, chi.GetSize());
 		for (int i = 0 ; i < chi.GetSize() ; i++) {
-			x_values[i] = RAD2DEG(2.0*asin(x_values_orig[i]*0.15406/(4.0*M_PI)));
+			if (RadioButton1.get_active()) {
+				x_values[i] = RAD2DEG(2.0*asin(x_values_orig[i]*lambda_c/(4.0*M_PI)));
+			}
+			else if (RadioButton2.get_active()) {
+				x_values[i] = RAD2DEG(2.0*asin((lambda_c/lambda_m)*sin(DEG2RAD(x_values_orig[i])/2.0)));
+			}
+			else if (RadioButton3.get_active()) {
+				x_values[i] = 4*M_PI*sin(DEG2RAD(x_values_orig[i])/2.0)/lambda_m;
+			}
 		}
 		
 		gsl_interp_init (interp, &x_values[0], chi.GetYPtr(), chi.GetSize());
@@ -249,4 +352,37 @@ bool Chi2DatWindow::on_backspace_clicked(GdkEventKey *event) {
                 return TRUE;
         }
         return FALSE;	
+}
+
+void Chi2DatWindow::on_radio_toggled() {
+	if (RadioButton1.get_active()) {
+		button1_entry1.set_sensitive();
+		button1_label1.set_sensitive();
+		button2_entry1.set_sensitive(false);
+		button2_label1.set_sensitive(false);	
+		button2_entry2.set_sensitive(false);	
+		button2_label2.set_sensitive(false);	
+		button3_entry1.set_sensitive(false);	
+		button3_label1.set_sensitive(false);	
+	}
+	else if (RadioButton2.get_active()) {
+		button1_entry1.set_sensitive(false);	
+		button1_label1.set_sensitive(false);	
+		button2_entry1.set_sensitive();	
+		button2_label1.set_sensitive();	
+		button2_entry2.set_sensitive();	
+		button2_label2.set_sensitive();	
+		button3_entry1.set_sensitive(false);	
+		button3_label1.set_sensitive(false);	
+	}
+	else if (RadioButton3.get_active()) {
+		button1_entry1.set_sensitive(false);	
+		button1_label1.set_sensitive(false);	
+		button2_entry1.set_sensitive(false);	
+		button2_label1.set_sensitive(false);	
+		button2_entry2.set_sensitive(false);	
+		button2_label2.set_sensitive(false);	
+		button3_entry1.set_sensitive();	
+		button3_label1.set_sensitive();	
+	}
 }

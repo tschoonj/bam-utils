@@ -12,6 +12,7 @@
 #include <gtkmm/entry.h>
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/scrolledwindow.h>
+#include <gtkmm/radiobutton.h>
 #include <iomanip>
 #include <iostream>
 #include "chifile.h"
@@ -49,7 +50,16 @@ public:
 	Gtk::Entry start_value;
 	Gtk::Entry step_size;
 	Gtk::Entry nsteps;
-	
+
+	Gtk::RadioButton RadioButton1, RadioButton2, RadioButton3;	
+	Gtk::Entry button1_entry1;
+	Gtk::Entry button2_entry1;
+	Gtk::Entry button2_entry2;
+	Gtk::Entry button3_entry1;
+	Gtk::Label button1_label1;
+	Gtk::Label button2_label1;
+	Gtk::Label button2_label2;
+	Gtk::Label button3_label1;
 	
 	bool on_delete_event(GdkEventAny* event);	
 	void on_open_clicked();
@@ -57,6 +67,7 @@ public:
 	bool on_backspace_clicked(GdkEventKey *key);
 	double get_double_from_entry(Gtk::Entry entry);
 	template<typename T> T get_value_from_entry(Gtk::Entry &entry);
+	void on_radio_toggled();
 };
 
 
