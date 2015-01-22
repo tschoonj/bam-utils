@@ -3,7 +3,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = bin 
+SUBDIRS = bin windows
 
-#EXTRA_DIST = test libxrmc.pc.in xrmc.spec.in
+EXTRA_DIST = License.rtf 
 #DISTCHECK_CONFIGURE_FLAGS = --disable-openmp --disable-xmi-msim

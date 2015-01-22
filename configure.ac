@@ -1,4 +1,4 @@
-AC_INIT([bam-utils],[0.1],[tom.schoonjans@me.com],,[https://github.com/tschoonj/bam-utils])
+AC_INIT([bam-utils],[0.1],[tom.schoonjans@bam.de],,[https://github.com/tschoonj/bam-utils])
 AC_PREREQ([2.60])
 #AC_CONFIG_SRCDIR([src/main/xrmc_main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -49,12 +49,29 @@ AC_PROG_CXX_C_O
 
 
 LDFLAGS_EXTRA=""
+OS_WINDOWS=0
+OS_WINDOWS_32=0
+OS_WINDOWS_64=0
+
 case "$host" in
-	*mingw*)
-		LDFLAGS_EXTRA+="-no-undefined"
+	i686-*mingw*)
+		OS_WINDOWS_32=1
+		OS_WINDOWS=1
+		;;
+	x86_64-*mingw*)
+		OS_WINDOWS_64=1
+		OS_WINDOWS=1
 		;;
 esac
-AC_SUBST(LDFLAGS_EXTRA)
+
+AC_SUBST(WINDRES_ARCH)
+
+AC_SUBST(OS_WINDOWS)
+AM_CONDITIONAL([OS_WINDOWS],[test x$OS_WINDOWS = x1])
+AC_SUBST(OS_WINDOWS_32)
+AM_CONDITIONAL([OS_WINDOWS_32],[test x$OS_WINDOWS_32 = x1])
+AC_SUBST(OS_WINDOWS_64)
+AM_CONDITIONAL([OS_WINDOWS_64],[test x$OS_WINDOWS_64 = x1])
 
 #look for openmp support in C++
 #AC_LANG_PUSH(C++)
@@ -72,7 +89,7 @@ PKG_PROG_PKG_CONFIG
 
 
 #search for xraylib and other modules
-PKG_CHECK_MODULES([xraylib],libxrl >= 3.1.0)
+#PKG_CHECK_MODULES([xraylib],libxrl >= 3.1.0)
 #PKG_CHECK_MODULES([xmimsim],libxmimsim >= 5.1)
 PKG_CHECK_MODULES([gtkmm],gtkmm-3.0 >= 3.12.0)
 PKG_CHECK_MODULES([gsl], gsl)
@@ -87,19 +104,25 @@ PKG_CHECK_MODULES([gsl], gsl)
 
 AC_CONFIG_FILES([	Makefile
 			bin/Makefile
+			windows/Makefile
 			])
 AC_CONFIG_HEADERS([config.h])
 
-
-abs_top_builddir=`pwd -P`
-AC_SUBST(abs_top_builddir)
-abs_top_srcdir=`AS_DIRNAME([$0])`
-cd $abs_top_srcdir
-abs_top_srcdir=`pwd -P`
-cd $abs_top_builddir
-AC_SUBST(abs_top_srcdir)
-
 AM_CONDITIONAL([ABS_SRC_BUILD_EQUAL],[test x$abs_top_builddir = x$abs_top_srcdir])
+
+if test x$OS_WINDOWS = "x1" ; then
+	abs_top_builddir_win=`pwd -W`
+	AC_SUBST(abs_top_builddir_win)
+	abs_top_srcdir_win=`AS_DIRNAME([$0])`
+	cd $abs_top_srcdir_win
+	abs_top_srcdir_win=`pwd -W`
+	cd $abs_top_builddir_win
+	AC_SUBST(abs_top_srcdir_win)
+	cd
+	abs_homedir_win=`pwd -W`
+	AC_SUBST(abs_homedir_win)
+	cd $abs_top_builddir_win
+fi
 
 
 AC_OUTPUT

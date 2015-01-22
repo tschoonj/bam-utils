@@ -12,7 +12,7 @@
 #include <cmath>
 #include <glibmm/convert.h>
 
-Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<sub>c</sub>"), RadioButton2("2θ<sub>m</sub> → 2θ<sub>c</sub>"), RadioButton3("2θ<sub>m</sub> → q") {
+Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<sub>c</sub>"), RadioButton2("2θ<sub>m</sub> → 2θ<sub>c</sub>"), RadioButton3("2θ<sub>m</sub> → q"), open("Load chi files") {
 	Gtk::Label *label;
 
 	//initialize window properly
@@ -97,7 +97,7 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<su
 	RadioButton3.signal_toggled().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_radio_toggled));
 
 
-	open.set_image_from_icon_name("document-open");
+	//open.set_image_from_icon_name("document-open");
         open.set_vexpand(false);
         open.set_hexpand(false);
         open.set_valign(Gtk::ALIGN_CENTER);

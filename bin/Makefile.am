@@ -1,5 +1,6 @@
-bin_PROGRAMS = chi2dat \
-	       readchi
+bin_PROGRAMS = chi2dat 
+
+noinst_PROGRAMS = readchi
 
 readchi_SOURCES = readchi.cpp \
 		  chifile.cpp \
@@ -15,3 +16,8 @@ chi2dat_CPPFLAGS = @gtkmm_CFLAGS@ \
 		   @gsl_CFLAGS@
 chi2dat_LDADD = @gtkmm_LIBS@ \
 		@gsl_LIBS@
+
+if OS_WINDOWS
+chi2dat_LDFLAGS = -Wl,-subsystem,windows
+endif
+
