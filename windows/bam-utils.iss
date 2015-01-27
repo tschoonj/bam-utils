@@ -5,7 +5,7 @@
 
 #ifdef BAM_UTILS64
   #define MyAppName "BAM-utils 64-bit"
-  #define GTK_INSTALLER_EXE "gtk3-runtime-3.14.7-2015-01-21-ts-win64.exe"
+  #define GTK_INSTALLER_EXE "gtk3-runtime-3.14.7-2015-01-27-ts-win64.exe"
   #define MY_MINGW "C:\TDM-GCC-64\"
 #else
   #define MyAppName "BAM-utils 32-bit"
