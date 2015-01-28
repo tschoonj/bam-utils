@@ -222,6 +222,8 @@ void Chi2DatWindow::on_convert_clicked() {
 
 
 	Gtk::TreeModel::Children kids = model->children();
+	int converted = 0;
+	int failed = 0;
         for (Gtk::TreeModel::Children::iterator iter = kids.begin() ; iter != kids.end() ; ++iter) {
                 Gtk::TreeModel::Row row = *iter;
 		Chi chi = row[chi_files_columns.col_chi];
@@ -254,15 +256,20 @@ void Chi2DatWindow::on_convert_clicked() {
 		if (!fs.is_open()) {
 			Gtk::MessageDialog mdialog(*this, Glib::ustring("Could not open ")+datfile+Glib::ustring(" for writing"), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
                 	mdialog.run();
-			return;
+			failed++;
+			continue;
 		}
+
+		int lines_printed = 0;
 
     		for (int i = 0 ; i <= nsteps_i ; i++) {
 			double x = start_value_d + i * step_size_d;
 			double y;
 			int e = gsl_interp_eval_e(interp, &x_values[0], chi.GetYPtr(), x, acc, &y);
-			if (e == GSL_EDOM)
+			if (e == GSL_EDOM) {
+				lines_printed++;
 				continue;
+			}
 			//std::cout << "x: " << x << " y: " << y << std::endl;
 			fs << x << "\t" << y << std::endl;
 		}
@@ -270,10 +277,36 @@ void Chi2DatWindow::on_convert_clicked() {
 		fs.close();
 		gsl_interp_free (interp);
 		gsl_interp_accel_free (acc);
+
+		if (lines_printed == 0) {
+			Gtk::MessageDialog mdialog(*this, Glib::ustring("No lines were printed to ")+datfile+Glib::ustring(" due to interpolation errros. Check the input values."), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+                	mdialog.run();
+			failed++;
+			continue;
+		}
+
+
+		converted++;
         }
 	
-	
-
+	if (failed == 0) {	
+		Gtk::MessageDialog mdialog(*this, Glib::ustring("All files have been successfully converted"), false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE, true);
+               	mdialog.run();
+	}
+	else if (converted > 0) {
+		//some files were converted
+		std::ostringstream ss;
+		ss << converted << " files were converted while " << failed << "files could not be converted";
+		Gtk::MessageDialog mdialog(*this, Glib::ustring(ss.str()), false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_CLOSE, true);
+               	mdialog.run();
+		
+	}
+	else {
+		// no files were converted
+		Gtk::MessageDialog mdialog(*this, Glib::ustring("No files have been converted"), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+               	mdialog.run();
+	}
+	return;
 }
 
 void Chi2DatWindow::on_open_clicked() {
