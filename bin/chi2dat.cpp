@@ -28,6 +28,7 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<su
 	model = Gtk::ListStore::create(chi_files_columns);
 	tv.set_model(model);
 	tv.append_column("Filename", chi_files_columns.col_filename_basename);
+	tv.set_tooltip_column(0);
 	sw.add(tv);
 	sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	grid.attach(sw, 0, 0, 1, 10);
