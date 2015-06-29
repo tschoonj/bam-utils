@@ -1,4 +1,4 @@
-AC_INIT([bam-utils],[0.2],[tom.schoonjans@bam.de],,[https://github.com/tschoonj/bam-utils])
+AC_INIT([bam-utils],[0.3],[tom.schoonjans@bam.de],,[https://github.com/tschoonj/bam-utils])
 AC_PREREQ([2.60])
 #AC_CONFIG_SRCDIR([src/main/xrmc_main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -104,6 +104,8 @@ PKG_CHECK_MODULES([gsl], gsl)
 
 AC_CONFIG_FILES([	Makefile
 			bin/Makefile
+			bin/chi2dat/Makefile
+			bin/asc2athena/Makefile
 			windows/Makefile
 			])
 AC_CONFIG_HEADERS([config.h])
