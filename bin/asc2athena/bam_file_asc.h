@@ -5,11 +5,13 @@
 #include <iostream>
 #include <vector>
 #include <exception>
+#include <gtkmm/window.h>
+#include "bam_plplot_window.h"
 
 namespace BAM {
 	class Exception: public std::exception {
 	private:
-		std::string Message;  
+		std::string Message;
 	public:
 		// constructors
 		//explicit Exception(const char *ch) : Message(ch) {}
@@ -38,8 +40,16 @@ namespace BAM {
 	class ASC {
 	private:
 		std::vector<class ASCSingle> singles;
+		PlPlotWindow *plplotwindow;
+		std::string filename;
+    std::vector<double> x, y_sample, y_ref, x_ref_deriv;
 	public:
-		ASC(std::string filename);	
+		ASC(std::string filename);
+		~ASC() {
+			if (plplotwindow)
+				delete plplotwindow;
+		}
+		void plot(Gtk::Window &parent);
 	};
 
 

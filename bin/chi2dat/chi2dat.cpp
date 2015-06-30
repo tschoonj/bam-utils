@@ -12,16 +12,20 @@
 #include <cmath>
 #include <glibmm/convert.h>
 
-Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<sub>c</sub>"), RadioButton2("2θ<sub>m</sub> → 2θ<sub>c</sub>"), RadioButton3("2θ<sub>m</sub> → q"), open("Load chi files") {
+Chi2DatWindow::Chi2DatWindow() : convert("Convert!"),
+																 RadioButton1("q → 2θ<sub>c</sub>"),
+																 RadioButton2("2θ<sub>m</sub> → 2θ<sub>c</sub>"),
+																 RadioButton3("2θ<sub>m</sub> → q"),
+																 open("Load chi files") {
 	Gtk::Label *label;
 
 	//initialize window properly
 	set_border_width(12);
 	set_default_size(500, 400);
 	grid.set_column_spacing(5);
-        grid.set_row_spacing(5);
-        grid.set_row_homogeneous(false);
-        grid.set_column_homogeneous(false);
+  grid.set_row_spacing(5);
+  grid.set_row_homogeneous(false);
+  grid.set_column_homogeneous(false);
 	add(grid);
 
 	//treeview
@@ -53,7 +57,7 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<su
 	//radiobuttons and friends
 	Gtk::RadioButton::Group group = RadioButton1.get_group();
 	RadioButton2.set_group(group);
-	RadioButton3.set_group(group);	
+	RadioButton3.set_group(group);
 	dynamic_cast<Gtk::Label*>(RadioButton1.get_child())->set_use_markup();
 	dynamic_cast<Gtk::Label*>(RadioButton2.get_child())->set_use_markup();
 	dynamic_cast<Gtk::Label*>(RadioButton3.get_child())->set_use_markup();
@@ -64,8 +68,8 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<su
 	grid.attach(button1_label1, 1, 4, 1, 1);
 	button1_entry1.set_text("0.15405929");
 	grid.attach(button1_entry1, 2, 4, 1, 1);
-	
-	
+
+
 	grid.attach(RadioButton2, 1, 5, 2, 1);
 	button2_label1.set_markup("λ<sub>c</sub>");
 	button2_label1.set_margin_start(10);
@@ -87,11 +91,11 @@ Chi2DatWindow::Chi2DatWindow() : convert("Convert!"), RadioButton1("q → 2θ<su
 
 	RadioButton1.set_active();
 	button2_entry1.set_sensitive(false);
-	button2_label1.set_sensitive(false);	
-	button2_entry2.set_sensitive(false);	
-	button2_label2.set_sensitive(false);	
-	button3_entry1.set_sensitive(false);	
-	button3_label1.set_sensitive(false);	
+	button2_label1.set_sensitive(false);
+	button2_entry2.set_sensitive(false);
+	button2_label2.set_sensitive(false);
+	button3_entry1.set_sensitive(false);
+	button3_label1.set_sensitive(false);
 
 	RadioButton1.signal_toggled().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_radio_toggled));
 	RadioButton2.signal_toggled().connect(sigc::mem_fun(*this, &Chi2DatWindow::on_radio_toggled));
@@ -244,13 +248,13 @@ void Chi2DatWindow::on_convert_clicked() {
 				x_values[i] = 4*M_PI*sin(DEG2RAD(x_values_orig[i])/2.0)/lambda_m;
 			}
 		}
-		
+
 		gsl_interp_init (interp, &x_values[0], chi.GetYPtr(), chi.GetSize());
 
 		//try writing to file
 		std::string datfile = Glib::locale_from_utf8(row[chi_files_columns.col_filename_full]);
 		datfile.replace(datfile.end()-3, datfile.end(), "dat");
-	
+
 		std::cout << "Filename: " << datfile << std::endl;
 
 		std::ofstream fs(datfile.c_str());
@@ -289,8 +293,8 @@ void Chi2DatWindow::on_convert_clicked() {
 
 		converted++;
         }
-	
-	if (failed == 0) {	
+
+	if (failed == 0) {
 		Gtk::MessageDialog mdialog(*this, Glib::ustring("All files have been successfully converted"), false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE, true);
                	mdialog.run();
 	}
@@ -300,7 +304,7 @@ void Chi2DatWindow::on_convert_clicked() {
 		ss << converted << " files were converted while " << failed << "files could not be converted";
 		Gtk::MessageDialog mdialog(*this, Glib::ustring(ss.str()), false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_CLOSE, true);
                	mdialog.run();
-		
+
 	}
 	else {
 		// no files were converted
@@ -319,7 +323,7 @@ void Chi2DatWindow::on_open_clicked() {
         filter_chi->add_pattern("*.CHI");
         dialog.add_filter(filter_chi);
         dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
-        dialog.add_button("Select", Gtk::RESPONSE_OK);	
+        dialog.add_button("Select", Gtk::RESPONSE_OK);
 
 	int result = dialog.run();
         std::vector<std::string> filenames;
@@ -385,7 +389,7 @@ bool Chi2DatWindow::on_backspace_clicked(GdkEventKey *event) {
                 }
                 return TRUE;
         }
-        return FALSE;	
+        return FALSE;
 }
 
 void Chi2DatWindow::on_radio_toggled() {
@@ -393,30 +397,30 @@ void Chi2DatWindow::on_radio_toggled() {
 		button1_entry1.set_sensitive();
 		button1_label1.set_sensitive();
 		button2_entry1.set_sensitive(false);
-		button2_label1.set_sensitive(false);	
-		button2_entry2.set_sensitive(false);	
-		button2_label2.set_sensitive(false);	
-		button3_entry1.set_sensitive(false);	
-		button3_label1.set_sensitive(false);	
+		button2_label1.set_sensitive(false);
+		button2_entry2.set_sensitive(false);
+		button2_label2.set_sensitive(false);
+		button3_entry1.set_sensitive(false);
+		button3_label1.set_sensitive(false);
 	}
 	else if (RadioButton2.get_active()) {
-		button1_entry1.set_sensitive(false);	
-		button1_label1.set_sensitive(false);	
-		button2_entry1.set_sensitive();	
-		button2_label1.set_sensitive();	
-		button2_entry2.set_sensitive();	
-		button2_label2.set_sensitive();	
-		button3_entry1.set_sensitive(false);	
-		button3_label1.set_sensitive(false);	
+		button1_entry1.set_sensitive(false);
+		button1_label1.set_sensitive(false);
+		button2_entry1.set_sensitive();
+		button2_label1.set_sensitive();
+		button2_entry2.set_sensitive();
+		button2_label2.set_sensitive();
+		button3_entry1.set_sensitive(false);
+		button3_label1.set_sensitive(false);
 	}
 	else if (RadioButton3.get_active()) {
-		button1_entry1.set_sensitive(false);	
-		button1_label1.set_sensitive(false);	
-		button2_entry1.set_sensitive(false);	
-		button2_label1.set_sensitive(false);	
-		button2_entry2.set_sensitive(false);	
-		button2_label2.set_sensitive(false);	
-		button3_entry1.set_sensitive();	
-		button3_label1.set_sensitive();	
+		button1_entry1.set_sensitive(false);
+		button1_label1.set_sensitive(false);
+		button2_entry1.set_sensitive(false);
+		button2_label1.set_sensitive(false);
+		button2_entry2.set_sensitive(false);
+		button2_label2.set_sensitive(false);
+		button3_entry1.set_sensitive();
+		button3_label1.set_sensitive();
 	}
 }

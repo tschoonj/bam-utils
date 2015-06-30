@@ -1,5 +1,5 @@
-#ifndef CHI2DATWINDOW_H
-#define CHI2DATWINDOW_H
+#ifndef ASC2ATHENAWINDOW_H
+#define ASC2ATHENAWINDOW_H
 
 #include <gtkmm/window.h>
 #include <gtkmm/label.h>
@@ -15,59 +15,44 @@
 #include <gtkmm/radiobutton.h>
 #include <iomanip>
 #include <iostream>
-#include "chifile.h"
+#include "bam_file_asc.h"
 
 
 
 
 
-class Chi2DatWindow : public Gtk::Window {
+class Asc2AthenaWindow : public Gtk::Window {
 public:
-	Chi2DatWindow();
-	virtual ~Chi2DatWindow();
+	Asc2AthenaWindow();
+	virtual ~Asc2AthenaWindow();
 
 	Gtk::Grid grid;
-	Gtk::Button convert;
-	class ChiFilesColumns : public Gtk::TreeModel::ColumnRecord {
+	Gtk::Button saveas;
+	Gtk::Button open;
+	class AscFilesColumns : public Gtk::TreeModel::ColumnRecord {
 		public:
-			ChiFilesColumns() {
+			AscFilesColumns() {
 				add(col_filename_full);
 				add(col_filename_basename);
 				add(col_filename_dirname);
-				add(col_chi);
+				add(col_asc);
 			}
 			Gtk::TreeModelColumn<Glib::ustring> col_filename_full;
 			Gtk::TreeModelColumn<Glib::ustring> col_filename_basename;
 			Gtk::TreeModelColumn<Glib::ustring> col_filename_dirname;
-			Gtk::TreeModelColumn<Chi> col_chi;
+			Gtk::TreeModelColumn<BAM::ASC *>    col_asc;
 	};
-	ChiFilesColumns chi_files_columns;
-	Gtk::Button open;
+	AscFilesColumns asc_files_columns;
 	Gtk::TreeView tv;
 	Glib::RefPtr<Gtk::ListStore> model;
 	Gtk::ScrolledWindow sw;
 
-	Gtk::Entry start_value;
-	Gtk::Entry step_size;
-	Gtk::Entry nsteps;
-
-	Gtk::RadioButton RadioButton1, RadioButton2, RadioButton3;
-	Gtk::Entry button1_entry1;
-	Gtk::Entry button2_entry1;
-	Gtk::Entry button2_entry2;
-	Gtk::Entry button3_entry1;
-	Gtk::Label button1_label1;
-	Gtk::Label button2_label1;
-	Gtk::Label button2_label2;
-	Gtk::Label button3_label1;
 
 	bool on_delete_event(GdkEventAny* event);
 	void on_open_clicked();
-	void on_convert_clicked();
+	//void on_save_clicked();
 	bool on_backspace_clicked(GdkEventKey *key);
-	double get_double_from_entry(Gtk::Entry entry);
-	template<typename T> T get_value_from_entry(Gtk::Entry &entry);
-	void on_radio_toggled();
+	void on_asc_file_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
 };
 
 
