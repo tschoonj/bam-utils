@@ -4,24 +4,10 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <exception>
 #include <gtkmm/window.h>
 #include "bam_plplot_window.h"
 
 namespace BAM {
-	class Exception: public std::exception {
-	private:
-		std::string Message;
-	public:
-		// constructors
-		//explicit Exception(const char *ch) : Message(ch) {}
-		explicit Exception(const std::string &s) : Message(s) {}
-		virtual ~Exception() throw() {};
-		// throw method
-		virtual const char* what() const throw() {
-			return Message.c_str();
-		}
-	};
 
 	class ASCSingle {
 	private:

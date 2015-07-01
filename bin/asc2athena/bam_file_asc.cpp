@@ -1,4 +1,6 @@
 #include "bam_file_asc.h"
+#include "bam_exception.h"
+#include "bam_math.h"
 
 #include <sstream>
 #include <fstream>
@@ -67,40 +69,53 @@ BAM::ASC::ASC(std::string filename) : plplotwindow(0), filename(filename) {
 		else
 			y_ref.push_back(0.0);
 	}
-	gsl_interp_accel *acc = gsl_interp_accel_alloc();
-  gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, x.size());
 
-  gsl_spline_init(spline, &x[0], &y_ref[0], x.size());
+	if (std::count(y_ref.begin(), y_ref.end(), double(0.0)) != y_ref.size()) {
+		std::vector<double> y_deriv = BAM::deriv(x, y_ref);
+		std::vector<double>::iterator y_deriv_max_iter = std::max_element(y_deriv.begin(), y_deriv.end());
+		unsigned int y_deriv_max_offset = std::distance(y_deriv.begin(), y_deriv_max_iter);
+		x_ref_deriv.push_back(x[y_deriv_max_offset]);
+		std::cout << "x[" << y_deriv_max_offset << "]: " << x[y_deriv_max_offset] << std::endl;
+		std::cout << "y_ref[" << y_deriv_max_offset << "]: " << y_ref[y_deriv_max_offset] << std::endl;
 
-	//calculate the second derivative for a lot of values...
-	/*std::vector<double> x_deriv(100000), y_deriv(100000);
-  for (unsigned int i = 0 ; i < 100000 ; i++) {
-		x_deriv[i] = x[0] + (x[x.size()-1] - x[0])/(99999 - 0)*(i - 0);
-		//std::cout << "x_deriv[" << i << "]: " << x_deriv[i] << std::endl;
-		if (gsl_spline_eval_deriv2_e(spline, x_deriv[i], acc, &y_deriv[i]) != GSL_SUCCESS) {
-			std::cerr << "gsl_spline_eval_deriv2_e returned an error at " << i << " -> " << x_deriv[i] << std::endl;
-			exit(1);
+		/*gsl_interp_accel *acc = gsl_interp_accel_alloc();
+  	gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, x.size());
+
+  	gsl_spline_init(spline, &x[0], &y_ref[0], x.size());
+
+
+		for (unsigned int i = 0 ; i < x.size() ; i++) {
+			//x_deriv[i] = x[0] + (x[x.size()-1] - x[0])/(99999 - 0)*(i - 0);
+			//std::cout << "x_deriv[" << i << "]: " << x_deriv[i] << std::endl;
+			if (gsl_spline_eval_deriv2_e(spline, x[i], acc, &y_deriv[i]) != GSL_SUCCESS) {
+				std::cerr << "gsl_spline_eval_deriv2_e returned an error at " << i << " -> " << x[i] << std::endl;
+				exit(1);
+			}
+			std::cout << "x[" << i << "]: " << x[i] << std::endl;
+			std::cout << "y_deriv[" << i << "]: " << y_deriv[i] << std::endl;
 		}
-	}*/
-	std::vector<double> y_deriv(x.size());
-	for (unsigned int i = 0 ; i < x.size() ; i++) {
-		//x_deriv[i] = x[0] + (x[x.size()-1] - x[0])/(99999 - 0)*(i - 0);
-		//std::cout << "x_deriv[" << i << "]: " << x_deriv[i] << std::endl;
-		if (gsl_spline_eval_deriv2_e(spline, x[i], acc, &y_deriv[i]) != GSL_SUCCESS) {
-			std::cerr << "gsl_spline_eval_deriv2_e returned an error at " << i << " -> " << x[i] << std::endl;
-			exit(1);
-		}
+		gsl_spline_free(spline);
+  	gsl_interp_accel_free(acc);
+		*/
+		/*
+		std::cout << "y_ref minimum: " << *std::min_element(y_ref.begin(), y_ref.end()) << std::endl;
+		std::cout << "y_ref maximum: " << *std::max_element(y_ref.begin(), y_ref.end()) << std::endl;
+
+		for (unsigned int i = std::distance(y_ref.begin(), std::min_element(y_ref.begin(), y_ref.end()))+20;
+		                  i < std::distance(y_ref.begin(), std::max_element(y_ref.begin(), y_ref.end()));
+											i++) {
+			std::cout << "y_ref[" << i << "]: " << y_ref[i] << std::endl;
+			std::cout << "y_deriv[" << i << "]: " << y_deriv[i] << std::endl;
+			if (y_deriv[i-1] > y_deriv[i]) {
+				x_ref_deriv.push_back(0.5*(x[i-1]+x[i]));
+				std::cout << "y_ref[" << i+1 << "]: " << y_ref[i+1] << std::endl;
+			  std::cout << "y_deriv[" << i+1 << "]: " << y_deriv[i+1] << std::endl;
+				std::cout << "second deriv root found at: " << x_ref_deriv[0] << std::endl;
+				std::cout << "second deriv root found for : " << y_ref[i] << std::endl;
+				break;
+			}
+		}*/
 	}
-	for (unsigned int i = 1 ; i < x.size(); i++) {
-		if (y_deriv[i-1] * y_deriv[i] < 0) {
-			x_ref_deriv.push_back(x[i-1]);
-			std::cout << "second deriv root found at: " << x[i-1] << std::endl;
-		}
-	}
-
-
-	gsl_spline_free(spline);
-  gsl_interp_accel_free(acc);
 }
 
 void BAM::ASC::plot(Gtk::Window &parent) {
@@ -109,7 +124,15 @@ void BAM::ASC::plot(Gtk::Window &parent) {
 		return;
 	}
 
-	plplotwindow = new BAM::PlPlotWindow(x, y_ref, filename);
+	if (std::count(y_ref.begin(), y_ref.end(), double(0.0)) != y_ref.size()) {
+		std::vector<BAM::PlPlotDrawingAreaData> area_data;
+		area_data.push_back(BAM::PlPlotDrawingAreaData(x, y_sample, filename, "Energy (eV)", "Absorbance", "Sample data"));
+		area_data.push_back(BAM::PlPlotDrawingAreaData(x, y_ref, filename, "Energy (eV)", "Absorbance", "Reference foil data"));
+	  plplotwindow = new BAM::PlPlotWindow(area_data);
+  }
+	else {
+	  plplotwindow = new BAM::PlPlotWindow(x, y_sample, filename, "Energy (eV)", "Absorbance");
+	}
   plplotwindow->set_transient_for(parent);
 	plplotwindow->property_destroy_with_parent() = true;
 

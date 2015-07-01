@@ -29,8 +29,8 @@ public:
 	}
 
 private:
-	std::string x_title;		
-	std::string y_title;		
+	std::string x_title;
+	std::string y_title;
 	std::vector<double> x_values;
 	std::vector<double> y_values;
 

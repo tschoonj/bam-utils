@@ -1,6 +1,8 @@
 #include "asc2athena.h"
+#include "bam_exception.h"
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/cellrenderercombo.h>
 #include <glibmm/miscutils.h>
 #include <iostream>
 #include <fstream>
@@ -11,6 +13,7 @@
 #include <gsl/gsl_errno.h>
 #include <cmath>
 #include <glibmm/convert.h>
+#include <xraylib.h>
 
 Asc2AthenaWindow::Asc2AthenaWindow() : saveas("Save"),
 																       open("Load asc files") {
@@ -31,13 +34,59 @@ Asc2AthenaWindow::Asc2AthenaWindow() : saveas("Save"),
 	tv.append_column("Filename", asc_files_columns.col_filename_basename);
 	tv.set_tooltip_column(0);
   tv.signal_row_activated().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_asc_file_activated));
+	tv.get_column(0)->set_expand();
 	sw.add(tv);
 	sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	grid.attach(sw, 0, 0, 2, 1);
 	sw.set_vexpand();
 	sw.set_hexpand();
 
+	shell_model = Gtk::ListStore::create(asc_files_shell_columns);
+	Gtk::TreeModel::Row row = *(shell_model->append());
+  row[asc_files_shell_columns.col_shell] = "K";
+  row[asc_files_shell_columns.col_shell_index] = K_SHELL;
+  row = *(shell_model->append());
+  row[asc_files_shell_columns.col_shell] = "L3";
+  row[asc_files_shell_columns.col_shell_index] = L3_SHELL;
 
+	element_model = Gtk::ListStore::create(asc_files_element_columns);
+	for (int i = 1 ; i <= 94 ; i++) {
+		row = *(element_model->append());
+		char *element = AtomicNumberToSymbol(i);
+  	row[asc_files_element_columns.col_element] = element;
+  	row[asc_files_element_columns.col_atomic_number] = i;
+		xrlFree(element);
+	}
+
+	Gtk::TreeView::Column* column = Gtk::manage(
+	          new Gtk::TreeView::Column("Element") );
+	Gtk::CellRendererCombo* renderer = Gtk::manage(
+	          new Gtk::CellRendererCombo);
+	column->pack_start(*renderer);
+	tv.append_column(*column);
+
+	column->add_attribute(renderer->property_text(),
+	          asc_files_columns.col_element);
+	renderer->property_model() = element_model;
+	renderer->property_text_column() = 0;
+	renderer->property_editable() = true;
+	renderer->property_has_entry() = false;
+	renderer->signal_changed().connect( sigc::mem_fun(*this,
+						              &Asc2AthenaWindow::on_element_changed));
+
+	column = Gtk::manage(new Gtk::TreeView::Column("Shell"));
+	renderer = Gtk::manage(new Gtk::CellRendererCombo);
+	column->pack_start(*renderer);
+	tv.append_column(*column);
+
+	column->add_attribute(renderer->property_text(),
+	          asc_files_columns.col_shell);
+	renderer->property_model() = shell_model;
+	renderer->property_text_column() = 0;
+	renderer->property_editable() = true;
+	renderer->property_has_entry() = false;
+	renderer->signal_changed().connect( sigc::mem_fun(*this,
+						              &Asc2AthenaWindow::on_shell_changed));
 
 	//open.set_image_from_icon_name("document-open");
   open.set_vexpand(false);
@@ -121,9 +170,10 @@ void Asc2AthenaWindow::on_open_clicked() {
 		}
 	}
 	//count children of model -> if greater than one, set the saveas button sensitive
-	if (model->children().size() > 0) {
-		saveas.set_sensitive();
-	}
+	//if (model->children().size() > 0) {
+	//	saveas.set_sensitive();
+	//}
+	check_save_status();
 	return;
 }
 
@@ -138,12 +188,7 @@ bool Asc2AthenaWindow::on_backspace_clicked(GdkEventKey *event) {
       delete asc;
       model->erase(row);
     }
-    if (model->children().size() > 0) {
-		  saveas.set_sensitive();
-    }
-    else {
-			saveas.set_sensitive(false);
-    }
+		check_save_status();
     return true;
   }
   return false;
@@ -157,5 +202,49 @@ void Asc2AthenaWindow::on_asc_file_activated(const Gtk::TreeModel::Path& path, G
   std::cout << "File double-clicked: " << row[asc_files_columns.col_filename_full] << std::endl;
   BAM::ASC *asc = row[asc_files_columns.col_asc];
   asc->plot(*this);
+}
 
+void Asc2AthenaWindow::on_element_changed(const Glib::ustring& path, const Gtk::TreeModel::iterator& iter) {
+	Gtk::TreePath model_path(path);
+
+	Gtk::TreeModel::iterator model_iter = model->get_iter(model_path);
+	if(model_iter) {
+		Gtk::TreeRow model_row = *model_iter;
+		Gtk::TreeRow row = *iter;
+		model_row[asc_files_columns.col_element] = Glib::ustring(row[asc_files_element_columns.col_element]);
+		model_row[asc_files_columns.col_atomic_number] = int(row[asc_files_element_columns.col_atomic_number]);
+		check_save_status();
+	}
+}
+
+void Asc2AthenaWindow::on_shell_changed(const Glib::ustring& path, const Gtk::TreeModel::iterator& iter) {
+	Gtk::TreePath model_path(path);
+
+	Gtk::TreeModel::iterator model_iter = model->get_iter(model_path);
+	if(model_iter) {
+		Gtk::TreeRow model_row = *model_iter;
+		Gtk::TreeRow row = *iter;
+		model_row[asc_files_columns.col_shell] = Glib::ustring(row[asc_files_shell_columns.col_shell]);
+		model_row[asc_files_columns.col_shell_index] = int(row[asc_files_shell_columns.col_shell_index]);
+		check_save_status();
+	}
+}
+
+void Asc2AthenaWindow::check_save_status() {
+	if (model->children().size() == 0) {
+		saveas.set_sensitive(false);
+		return;
+	}
+	for (Gtk::TreeModel::iterator iter = model->children().begin() ;
+			 iter != model->children().end() ;
+			 ++iter) {
+		Gtk::TreeRow row = *iter;
+		if (row[asc_files_columns.col_element] == "" ||
+		    row[asc_files_columns.col_shell] == "") {
+			saveas.set_sensitive(false);
+			return;
+		}
+	}
+	saveas.set_sensitive(true);
+	return;
 }
