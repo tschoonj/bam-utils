@@ -6,8 +6,8 @@ libbam_file_asc_la_SOURCES = bam_file_asc.cpp \
                              bam_math.h \
                              bam_math.cpp \
                              bam_exception.h
-libbam_file_asc_la_CXXFLAGS = $(plplotcxx_CFLAGS) $(gtkmm_CFLAGS) $(gsl_CFLAGS)
-libbam_file_asc_la_LIBADD =  $(plplotcxx_LIBS) $(gtkmm_LIBS) $(gsl_LIBS)
+libbam_file_asc_la_CXXFLAGS = $(plplotcxx_CFLAGS) $(gtkmm_CFLAGS)
+libbam_file_asc_la_LIBADD =  $(plplotcxx_LIBS) $(gtkmm_LIBS)
 
 
 noinst_PROGRAMS = test-read-asc test-deriv

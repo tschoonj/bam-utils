@@ -8,9 +8,6 @@
 #include <fstream>
 #include <sstream>
 #include <exception>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_errno.h>
 #include <cmath>
 #include <glibmm/convert.h>
 #include <xraylib.h>
