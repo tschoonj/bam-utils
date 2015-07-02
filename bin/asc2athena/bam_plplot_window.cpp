@@ -51,7 +51,7 @@ void BAM::PlPlotWindow::create() {
       notebook.append_page(*drawingareas[i], drawingareas[i]->data.notebook_label);
       drawingareas[i]->show();
     }
-    set_default_size(720, 540);
+    set_default_size(720, 580);
     add(notebook);
     notebook.show();
   }

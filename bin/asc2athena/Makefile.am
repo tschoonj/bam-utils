@@ -6,8 +6,8 @@ libbam_file_asc_la_SOURCES = bam_file_asc.cpp \
                              bam_math.h \
                              bam_math.cpp \
                              bam_exception.h
-libbam_file_asc_la_CXXFLAGS = $(plplotcxx_CFLAGS) $(gtkmm_CFLAGS)
-libbam_file_asc_la_LIBADD =  $(plplotcxx_LIBS) $(gtkmm_LIBS)
+libbam_file_asc_la_CXXFLAGS = $(plplotcxx_CFLAGS) $(gtkmm_CFLAGS) $(xraylib_CFLAGS)
+libbam_file_asc_la_LIBADD =  $(plplotcxx_LIBS) $(gtkmm_LIBS) $(xraylib_LIBS)
 
 
 noinst_PROGRAMS = test-read-asc test-deriv
@@ -19,5 +19,5 @@ test_deriv_LDADD = libbam_file_asc.la
 
 bin_PROGRAMS = asc2athena
 asc2athena_SOURCES = asc2athena.h asc2athena.cpp main.cpp
-asc2athena_LDADD = libbam_file_asc.la $(xraylib_LIBS)
+asc2athena_LDADD = libbam_file_asc.la
 asc2athena_CXXFLAGS = libbam_file_asc.la $(plplotcxx_CFLAGS) $(gtkmm_CFLAGS) $(xraylib_CFLAGS)

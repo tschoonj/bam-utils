@@ -36,6 +36,7 @@ namespace BAM {
 				delete plplotwindow;
 		}
 		void plot(Gtk::Window &parent);
+		void write(std::string filename = "", int atomic_number = -1, int shell = -1);
 	};
 
 

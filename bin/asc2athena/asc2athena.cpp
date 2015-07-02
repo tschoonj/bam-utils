@@ -3,6 +3,7 @@
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/cellrenderercombo.h>
+#include <gtkmm/comboboxtext.h>
 #include <glibmm/miscutils.h>
 #include <iostream>
 #include <fstream>
@@ -13,7 +14,9 @@
 #include <xraylib.h>
 
 Asc2AthenaWindow::Asc2AthenaWindow() : saveas("Save"),
-																       open("Load asc files") {
+																       open("Load asc files"),
+																			 set_element("Set element"),
+																			 set_shell("Set shell") {
 	Gtk::Label *label;
 
 	//initialize window properly
@@ -32,9 +35,12 @@ Asc2AthenaWindow::Asc2AthenaWindow() : saveas("Save"),
 	tv.set_tooltip_column(0);
   tv.signal_row_activated().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_asc_file_activated));
 	tv.get_column(0)->set_expand();
+	tv.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
+	tv.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_selection_changed));
+
 	sw.add(tv);
 	sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-	grid.attach(sw, 0, 0, 2, 1);
+	grid.attach(sw, 0, 0, 4, 1);
 	sw.set_vexpand();
 	sw.set_hexpand();
 
@@ -99,8 +105,24 @@ Asc2AthenaWindow::Asc2AthenaWindow() : saveas("Save"),
   saveas.set_valign(Gtk::ALIGN_CENTER);
   saveas.set_halign(Gtk::ALIGN_CENTER);
 	saveas.set_sensitive(false);
-	//saveas.signal_clicked().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_convert_clicked));
+	saveas.signal_clicked().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_save_clicked));
 	grid.attach(saveas, 1, 1, 1, 1);
+
+	set_element.set_vexpand(false);
+	set_element.set_hexpand(false);
+	set_element.set_valign(Gtk::ALIGN_CENTER);
+	set_element.set_halign(Gtk::ALIGN_CENTER);
+	set_element.set_sensitive(false);
+	set_element.signal_clicked().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_set_element_clicked));
+	grid.attach(set_element, 2, 1, 1, 1);
+
+	set_shell.set_vexpand(false);
+	set_shell.set_hexpand(false);
+	set_shell.set_valign(Gtk::ALIGN_CENTER);
+	set_shell.set_halign(Gtk::ALIGN_CENTER);
+	set_shell.set_sensitive(false);
+	set_shell.signal_clicked().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_set_shell_clicked));
+	grid.attach(set_shell, 3, 1, 1, 1);
 
 
 	signal_delete_event().connect(sigc::mem_fun(*this, &Asc2AthenaWindow::on_delete_event));
@@ -243,5 +265,108 @@ void Asc2AthenaWindow::check_save_status() {
 		}
 	}
 	saveas.set_sensitive(true);
+	return;
+}
+
+void Asc2AthenaWindow::on_save_clicked() {
+	for (Gtk::TreeModel::iterator iter = model->children().begin() ;
+			 iter != model->children().end() ;
+			 ++iter) {
+		Gtk::TreeRow row = *iter;
+  	BAM::ASC *asc_data = row[asc_files_columns.col_asc];
+		try {
+			asc_data->write("", row[asc_files_columns.col_atomic_number], row[asc_files_columns.col_shell_index]);
+		}
+		catch (std::ofstream::failure &e) {
+			Gtk::MessageDialog mdialog(*this, "Error reading to file", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+      mdialog.set_secondary_text(Glib::ustring("I/O error: ")+e.what());
+      mdialog.run();
+			break;
+		}
+	}
+	std::stringstream stream;
+	stream << model->children().size() << " files were successfully written";
+	Gtk::MessageDialog mdialog(*this, stream.str(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
+  mdialog.run();
+	return;
+}
+
+void Asc2AthenaWindow::on_set_element_clicked() {
+	Gtk::Dialog dialog("Select an element", *this, true);
+	dialog.add_button("Ok", Gtk::RESPONSE_OK);
+	dialog.add_button("Cancel", Gtk::RESPONSE_CANCEL);
+	Gtk::Grid grid;
+	Gtk::Label label("Element");
+	grid.attach(label, 0, 0, 1, 1);
+
+	Gtk::ComboBoxText element_combobox;
+	for (int i = 1 ; i <= 94 ; i++) {
+		char *element = AtomicNumberToSymbol(i);
+		element_combobox.append(element);
+		xrlFree(element);
+	}
+	element_combobox.set_active(0);
+	grid.attach(element_combobox, 1, 0, 1, 1);
+	grid.set_column_spacing(5);
+	grid.set_border_width(5);
+	element_combobox.set_hexpand();
+	grid.show_all();
+	dialog.get_content_area()->pack_start(grid, true, false, 0);
+
+	if (dialog.run() != Gtk::RESPONSE_OK) {
+		return;
+	}
+	Glib::RefPtr<Gtk::TreeSelection> selection = tv.get_selection();
+	std::vector<Gtk::TreeModel::Path> paths = selection->get_selected_rows();
+	for (std::vector<Gtk::TreeModel::Path>::iterator rit = paths.begin() ; rit != paths.end() ; ++rit) {
+		Gtk::TreeModel::Row row = *(model->get_iter(*rit));
+		row[asc_files_columns.col_element] = element_combobox.get_active_text();
+		row[asc_files_columns.col_atomic_number] = element_combobox.get_active_row_number() + 1;
+	}
+	check_save_status();
+}
+
+void Asc2AthenaWindow::on_set_shell_clicked() {
+	Gtk::Dialog dialog("Select a shell", *this, true);
+	dialog.add_button("Ok", Gtk::RESPONSE_OK);
+	dialog.add_button("Cancel", Gtk::RESPONSE_CANCEL);
+	Gtk::Grid grid;
+	Gtk::Label label("Shell");
+	grid.attach(label, 0, 0, 1, 1);
+
+	Gtk::ComboBoxText shell_combobox;
+	shell_combobox.append("K");
+	shell_combobox.append("L3");
+	shell_combobox.set_active(0);
+
+	grid.attach(shell_combobox, 1, 0, 1, 1);
+	grid.set_column_spacing(5);
+	grid.set_border_width(5);
+	shell_combobox.set_hexpand();
+	grid.show_all();
+	dialog.get_content_area()->pack_start(grid, true, false, 0);
+
+	if (dialog.run() != Gtk::RESPONSE_OK) {
+		return;
+	}
+	Glib::RefPtr<Gtk::TreeSelection> selection = tv.get_selection();
+	std::vector<Gtk::TreeModel::Path> paths = selection->get_selected_rows();
+	for (std::vector<Gtk::TreeModel::Path>::iterator rit = paths.begin() ; rit != paths.end() ; ++rit) {
+		Gtk::TreeModel::Row row = *(model->get_iter(*rit));
+		row[asc_files_columns.col_shell] = shell_combobox.get_active_text();
+		row[asc_files_columns.col_shell_index] = shell_combobox.get_active_row_number() == 0 ? K_SHELL : L3_SHELL;
+	}
+	check_save_status();
+}
+
+void Asc2AthenaWindow::on_selection_changed() {
+	if (model->children().size() >= 1) {
+		set_element.set_sensitive();
+		set_shell.set_sensitive();
+	}
+	else {
+		set_element.set_sensitive(false);
+		set_shell.set_sensitive(false);
+	}
 	return;
 }

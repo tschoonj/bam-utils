@@ -29,6 +29,8 @@ public:
 	Gtk::Grid grid;
 	Gtk::Button saveas;
 	Gtk::Button open;
+	Gtk::Button set_shell;
+	Gtk::Button set_element;
 	class AscFilesColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
 		AscFilesColumns() {
@@ -81,14 +83,14 @@ public:
 
 	bool on_delete_event(GdkEventAny* event);
 	void on_open_clicked();
-	//void on_save_clicked();
+	void on_save_clicked();
+	void on_set_element_clicked();
+	void on_set_shell_clicked();
+	void on_selection_changed();
 	bool on_backspace_clicked(GdkEventKey *key);
 	void on_asc_file_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
 	void on_shell_changed(const Glib::ustring& path, const Gtk::TreeModel::iterator& iter);
 	void on_element_changed(const Glib::ustring& path, const Gtk::TreeModel::iterator& iter);
 	void check_save_status();
 };
-
-
-
 #endif

@@ -6,9 +6,8 @@
 #include <fstream>
 #include <exception>
 #include <cstdlib>
+#include <xraylib.h>
 #include <cmath>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_errno.h>
 
 BAM::ASCSingle::ASCSingle(std::string line) {
 	std::istringstream iss(line);
@@ -76,45 +75,8 @@ BAM::ASC::ASC(std::string filename) : plplotwindow(0), filename(filename) {
 		unsigned int y_deriv_max_offset = std::distance(y_deriv.begin(), y_deriv_max_iter);
 		x_ref_deriv.push_back(x[y_deriv_max_offset]);
 		std::cout << "x[" << y_deriv_max_offset << "]: " << x[y_deriv_max_offset] << std::endl;
+		std::cout << "y_sample[" << y_deriv_max_offset << "]: " << y_sample[y_deriv_max_offset] << std::endl;
 		std::cout << "y_ref[" << y_deriv_max_offset << "]: " << y_ref[y_deriv_max_offset] << std::endl;
-
-		/*gsl_interp_accel *acc = gsl_interp_accel_alloc();
-  	gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, x.size());
-
-  	gsl_spline_init(spline, &x[0], &y_ref[0], x.size());
-
-
-		for (unsigned int i = 0 ; i < x.size() ; i++) {
-			//x_deriv[i] = x[0] + (x[x.size()-1] - x[0])/(99999 - 0)*(i - 0);
-			//std::cout << "x_deriv[" << i << "]: " << x_deriv[i] << std::endl;
-			if (gsl_spline_eval_deriv2_e(spline, x[i], acc, &y_deriv[i]) != GSL_SUCCESS) {
-				std::cerr << "gsl_spline_eval_deriv2_e returned an error at " << i << " -> " << x[i] << std::endl;
-				exit(1);
-			}
-			std::cout << "x[" << i << "]: " << x[i] << std::endl;
-			std::cout << "y_deriv[" << i << "]: " << y_deriv[i] << std::endl;
-		}
-		gsl_spline_free(spline);
-  	gsl_interp_accel_free(acc);
-		*/
-		/*
-		std::cout << "y_ref minimum: " << *std::min_element(y_ref.begin(), y_ref.end()) << std::endl;
-		std::cout << "y_ref maximum: " << *std::max_element(y_ref.begin(), y_ref.end()) << std::endl;
-
-		for (unsigned int i = std::distance(y_ref.begin(), std::min_element(y_ref.begin(), y_ref.end()))+20;
-		                  i < std::distance(y_ref.begin(), std::max_element(y_ref.begin(), y_ref.end()));
-											i++) {
-			std::cout << "y_ref[" << i << "]: " << y_ref[i] << std::endl;
-			std::cout << "y_deriv[" << i << "]: " << y_deriv[i] << std::endl;
-			if (y_deriv[i-1] > y_deriv[i]) {
-				x_ref_deriv.push_back(0.5*(x[i-1]+x[i]));
-				std::cout << "y_ref[" << i+1 << "]: " << y_ref[i+1] << std::endl;
-			  std::cout << "y_deriv[" << i+1 << "]: " << y_deriv[i+1] << std::endl;
-				std::cout << "second deriv root found at: " << x_ref_deriv[0] << std::endl;
-				std::cout << "second deriv root found for : " << y_ref[i] << std::endl;
-				break;
-			}
-		}*/
 	}
 }
 
@@ -137,4 +99,29 @@ void BAM::ASC::plot(Gtk::Window &parent) {
 	plplotwindow->property_destroy_with_parent() = true;
 
   plplotwindow->show();
+}
+
+void BAM::ASC::write(std::string new_filename, int atomic_number, int shell) {
+	if (new_filename == "") {
+		new_filename = filename.substr(0, filename.find_last_of(".")) + ".post.asc";
+	}
+	std::vector<double> x_print(x);
+	std::vector<double> y_print(y_sample);
+	if (atomic_number != -1 && shell != -1 && x_ref_deriv.size() != 0) {
+		double energy_offset = x_ref_deriv[0] - EdgeEnergy(atomic_number, shell)*1000.0;
+		std::cout << "energy_offset: " << energy_offset << std::endl;
+		std::transform(x_print.begin(), x_print.end(), x_print.begin(),
+             std::bind2nd(std::minus<double>(), energy_offset));
+	}
+
+	std::ofstream stream;
+	stream.exceptions (std::ofstream::failbit | std::ofstream::badbit);
+	stream.open(new_filename);
+	stream << "Energy (eV)    mu Sample" << std::endl;
+	for (unsigned int i = 0 ; i < x_print.size() ; i++) {
+		stream << x_print[i] << "    " << y_print[i] << std::endl;
+	}
+	stream.close();
+	std::cout << "Successfully written to " << new_filename << std::endl;
+	return;
 }
