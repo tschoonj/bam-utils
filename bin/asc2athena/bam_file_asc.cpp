@@ -12,12 +12,12 @@
 BAM::ASCSingle::ASCSingle(std::string line) {
 	std::istringstream iss(line);
 	//this constructor will throw an exception if something went wrong!!
-	iss.exceptions (std::istringstream::failbit | std::istringstream::badbit | std::istringstream::eofbit);
+	iss.exceptions (std::istringstream::failbit | std::istringstream::badbit);
 	try {
 		iss >> Energy >> Ioni_1 >> Ioni_2 >> Ioni_3 >> BESSY >> Encoder >> Energy_Encoder;
 		//std::cout << Energy << " " << Ioni_1 << " " << Ioni_2 << " " << Ioni_3 << " " << BESSY << " " << Encoder << " " << Energy_Encoder << std::endl;
 	}
-	catch (std::ios_base::failure &e) {
+	catch (std::istringstream::failure &e) {
 		if (iss.eof())
 			throw BAM::Exception("eof IO failure");
 		if (iss.bad())
@@ -36,13 +36,14 @@ BAM::ASC::ASC(std::string filename) : plplotwindow(0), filename(filename) {
 
 	while (1) {
 		try {
+			fs.clear();
 			std::string line;
 			std::getline(fs, line);
 			singles.push_back(BAM::ASCSingle(line));
 		}
-		catch (std::ios_base::failure &e) {
+		catch (std::ifstream::failure &e) {
 			if (fs.eof()) {
-				//std::cout << "EOF reached" << std::endl;
+				std::cout << "EOF reached" << std::endl;
 				break;
 			}
 			std::cerr << "std::io_stream::failure -> " << e.what() << std::endl;
@@ -52,6 +53,15 @@ BAM::ASC::ASC(std::string filename) : plplotwindow(0), filename(filename) {
 			std::cerr << "BAM:Exception -> " << e.what() << std::endl;
 			exit(1);
 		}
+		catch (std::exception &e) {
+			//since gcc 5.1.0, std::ios_base::failure exceptions are no longer caught by the eponymously named handler, but std::exception still works...
+			if (fs.eof()) {
+				std::cout << "EOF reached" << std::endl;
+				break;
+			}
+			std::cerr << "std:exception -> " << e.what() << std::endl;
+			exit(1);
+		}
 		catch (...) {
 			std::cerr << "unknown exception" << std::endl;
 			exit(1);
@@ -59,7 +69,7 @@ BAM::ASC::ASC(std::string filename) : plplotwindow(0), filename(filename) {
 	}
 	fs.close();
 
-  for (unsigned int i = 0 ; i < singles.size() ; i++) {
+  	for (unsigned int i = 0 ; i < singles.size() ; i++) {
 		x.push_back(singles[i].Energy_Encoder*1000.0);
 		y_sample.push_back(-1.0*log(singles[i].Ioni_2/singles[i].Ioni_1));
 		//the third ionization is sometimes not connected and returns then zero
@@ -69,15 +79,17 @@ BAM::ASC::ASC(std::string filename) : plplotwindow(0), filename(filename) {
 			y_ref.push_back(0.0);
 	}
 
+	//std::cout << "Before deriv" << std::endl;
 	if (std::count(y_ref.begin(), y_ref.end(), double(0.0)) != y_ref.size()) {
 		std::vector<double> y_deriv = BAM::deriv(x, y_ref);
 		std::vector<double>::iterator y_deriv_max_iter = std::max_element(y_deriv.begin(), y_deriv.end());
 		unsigned int y_deriv_max_offset = std::distance(y_deriv.begin(), y_deriv_max_iter);
 		x_ref_deriv.push_back(x[y_deriv_max_offset]);
-		std::cout << "x[" << y_deriv_max_offset << "]: " << x[y_deriv_max_offset] << std::endl;
-		std::cout << "y_sample[" << y_deriv_max_offset << "]: " << y_sample[y_deriv_max_offset] << std::endl;
-		std::cout << "y_ref[" << y_deriv_max_offset << "]: " << y_ref[y_deriv_max_offset] << std::endl;
+		//std::cout << "x[" << y_deriv_max_offset << "]: " << x[y_deriv_max_offset] << std::endl;
+		//std::cout << "y_sample[" << y_deriv_max_offset << "]: " << y_sample[y_deriv_max_offset] << std::endl;
+		//std::cout << "y_ref[" << y_deriv_max_offset << "]: " << y_ref[y_deriv_max_offset] << std::endl;
 	}
+	//std::cout << "After deriv" << std::endl;
 }
 
 void BAM::ASC::plot(Gtk::Window &parent) {
@@ -116,7 +128,7 @@ void BAM::ASC::write(std::string new_filename, int atomic_number, int shell) {
 
 	std::ofstream stream;
 	stream.exceptions (std::ofstream::failbit | std::ofstream::badbit);
-	stream.open(new_filename);
+	stream.open(new_filename.c_str());
 	stream << "Energy (eV)    mu Sample" << std::endl;
 	for (unsigned int i = 0 ; i < x_print.size() ; i++) {
 		stream << x_print[i] << "    " << y_print[i] << std::endl;

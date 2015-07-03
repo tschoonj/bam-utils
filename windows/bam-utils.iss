@@ -63,13 +63,19 @@ Name: "source" ; Description: "Source code" ; Types: full
 Source: "{#srcdir}\windows\{#GTK_INSTALLER_EXE}" ; Flags: deleteafterinstall ; DestDir: "{tmp}" ; Components: core 
 Source: "{#MY_HOME}\bin\libgsl-0.dll" ; DestDir: "{app}\Lib" ; Components: core
 Source: "{#MY_HOME}\bin\libgslcblas-0.dll" ; DestDir: "{app}\Lib" ; Components: core
+Source: "{#MY_HOME}\bin\libplplotcxx.dll" ; DestDir: "{app}\Lib" ; Components: core
+Source: "{#MY_HOME}\bin\libplplot.dll" ; DestDir: "{app}\Lib" ; Components: core
+Source: "{#MY_HOME}\bin\libcsirocsa.dll" ; DestDir: "{app}\Lib" ; Components: core
+Source: "{#MY_HOME}\bin\libqsastime.dll" ; DestDir: "{app}\Lib" ; Components: core
 
 Source: "{#MY_HOME}\bin\chi2dat.exe" ; DestDir: "{app}\Bin" ; Components: core
+Source: "{#MY_HOME}\bin\asc2athena.exe" ; DestDir: "{app}\Bin" ; Components: core
 
 Source: "{#MY_HOME}\github\bam-utils\build\bam-utils-{#MyAppVersion}.tar.gz" ; DestDir: "{app}\Sources" ; Components: source
 
 [Icons]
 Name: "{group}\{cm:LaunchProgram,chi2dat}"; Filename: "{app}\Bin\chi2dat.exe"
+Name: "{group}\{cm:LaunchProgram,asc2athena}"; Filename: "{app}\Bin\asc2athena.exe"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 [Run]
@@ -83,11 +89,12 @@ Type: filesandordirs ; Name: "{app}\GTK3"
 Type: dirifempty ; Name: "{app}"
 
 [Registry]
-Root: HKLM; Subkey: "Software\XMI-MSIM" ; ValueType: string ; ValueName: "" ; ValueData: "{app}" ; Flags: uninsdeletekey 
-Root: HKLM; Subkey: "Software\XMI-MSIM" ; ValueType: string ; ValueName: "InstallationDirectory" ; ValueData: "{app}"
-Root: HKLM; Subkey: "Software\XMI-MSIM" ; ValueType: string ; ValueName: "Vendor" ; ValueData: "Tom Schoonjans"
+Root: HKLM; Subkey: "Software\BAM-utils" ; ValueType: string ; ValueName: "" ; ValueData: "{app}" ; Flags: uninsdeletekey 
+Root: HKLM; Subkey: "Software\BAM-utils" ; ValueType: string ; ValueName: "InstallationDirectory" ; ValueData: "{app}"
+Root: HKLM; Subkey: "Software\BAM-utils" ; ValueType: string ; ValueName: "Vendor" ; ValueData: "Tom Schoonjans"
 
 Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\chi2dat.exe" ; ValueType: string ; ValueName: "" ; ValueData: "{app}\Bin\chi2dat.exe" ; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\chi2dat.exe" ; ValueType: string ; ValueName: "Path" ; ValueData: "{app}\Bin;{app}\Lib;{app}\GTK3"
 
-
+Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\asc2athena.exe" ; ValueType: string ; ValueName: "" ; ValueData: "{app}\Bin\asc2athena.exe" ; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\asc2athena.exe" ; ValueType: string ; ValueName: "Path" ; ValueData: "{app}\Bin;{app}\Lib;{app}\GTK3"
