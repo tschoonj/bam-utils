@@ -21,3 +21,7 @@ bin_PROGRAMS = asc2athena
 asc2athena_SOURCES = asc2athena.h asc2athena.cpp main.cpp
 asc2athena_LDADD = libbam_file_asc.la
 asc2athena_CXXFLAGS = libbam_file_asc.la $(plplotcxx_CFLAGS) $(gtkmm_CFLAGS) $(xraylib_CFLAGS)
+
+if OS_WINDOWS
+asc2athena_LDFLAGS = -Wl,-subsystem,windows
+endif
