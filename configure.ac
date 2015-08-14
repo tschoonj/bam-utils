@@ -47,6 +47,8 @@ if test `AS_BASENAME([$CXX])` = $CXX ; then
 fi
 AC_PROG_CXX_C_O
 
+AX_CXX_COMPILE_STDCXX_11(ext, mandatory)
+
 
 LDFLAGS_EXTRA=""
 OS_WINDOWS=0
@@ -91,10 +93,8 @@ PKG_PROG_PKG_CONFIG
 #search for xraylib and other modules
 PKG_CHECK_MODULES([xraylib],libxrl >= 3.1.0)
 #PKG_CHECK_MODULES([xmimsim],libxmimsim >= 5.1)
-PKG_CHECK_MODULES([gtkmm],gtkmm-3.0 >= 3.12.0)
+PKG_CHECK_MODULES([gtkmm],gtkmm-3.0 >= 3.12.0 gtkmm-plplot-0.1)
 PKG_CHECK_MODULES([gsl], gsl)
-PKG_CHECK_MODULES([plplotcxx], [plplot-c++], , 
- [PKG_CHECK_MODULES([plplotcxx], [plplotd-c++])])
 #PKG_CHECK_MODULES([libxmlmm], libxml++-2.6 >= 2.30.0)
 
 #search for xmlcatalog

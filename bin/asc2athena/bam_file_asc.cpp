@@ -99,10 +99,11 @@ void BAM::ASC::plot(Gtk::Window &parent) {
 	}
 
 	if (std::count(y_ref.begin(), y_ref.end(), double(0.0)) != y_ref.size()) {
-		std::vector<BAM::PlPlotDrawingAreaData> area_data;
-		area_data.push_back(BAM::PlPlotDrawingAreaData(x, y_sample, filename, "Energy (eV)", "Absorbance", "Sample data"));
-		area_data.push_back(BAM::PlPlotDrawingAreaData(x, y_ref, filename, "Energy (eV)", "Absorbance", "Reference foil data"));
-	  plplotwindow = new BAM::PlPlotWindow(area_data);
+		std::vector<Gtk::PLplot::PlotData2D> area_data;
+		std::vector<std::string> notebook_labels = {"Sample data", "Reference foil data"};
+		area_data.emplace_back(x, y_sample);
+		area_data.emplace_back(x, y_ref);
+	  plplotwindow = new BAM::PlPlotWindow(area_data, filename, "Energy (eV)", "Absorbance", notebook_labels);
   }
 	else {
 	  plplotwindow = new BAM::PlPlotWindow(x, y_sample, filename, "Energy (eV)", "Absorbance");
