@@ -109,6 +109,7 @@ AC_CONFIG_FILES([	Makefile
       bin/common/Makefile
 			bin/chi2dat/Makefile
 			bin/asc2athena/Makefile
+			bin/chi2pdh/Makefile
 			windows/Makefile
 			])
 AC_CONFIG_HEADERS([config.h])

@@ -1,1 +1,1 @@
-SUBDIRS = common chi2dat asc2athena
+SUBDIRS = common chi2dat asc2athena chi2pdh

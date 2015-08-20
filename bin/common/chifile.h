@@ -27,7 +27,12 @@ public:
 	int GetSize() {
 		return x_values.size();
 	}
-
+	std::vector<double> GetXVector() {
+		return x_values;
+	}
+	std::vector<double> GetYVector() {
+		return y_values;
+	}
 private:
 	std::string x_title;
 	std::string y_title;
