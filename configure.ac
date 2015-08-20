@@ -106,6 +106,7 @@ PKG_CHECK_MODULES([gsl], gsl)
 
 AC_CONFIG_FILES([	Makefile
 			bin/Makefile
+      bin/common/Makefile
 			bin/chi2dat/Makefile
 			bin/asc2athena/Makefile
 			windows/Makefile
