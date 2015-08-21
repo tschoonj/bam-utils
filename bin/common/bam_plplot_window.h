@@ -15,8 +15,8 @@ namespace BAM {
     Gtk::Notebook notebook;
     void create();
   public:
-    PlPlotWindow(std::vector<double> &x_orig,
-                 std::vector<double> &y_orig,
+    PlPlotWindow(const std::vector<double> &x_orig,
+                 const std::vector<double> &y_orig,
                  std::string title = "title",
                  std::string x_axis = "x",
                  std::string y_axis = "y");

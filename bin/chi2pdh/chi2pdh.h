@@ -16,6 +16,7 @@
 #include <iomanip>
 #include <iostream>
 #include "chifile.h"
+#include "bam_plplot_window.h"
 
 class Chi2PdhWindow : public Gtk::Window {
 public:
@@ -31,11 +32,13 @@ public:
 				add(col_filename_basename);
 				add(col_filename_dirname);
 				add(col_chi);
+				add(col_plplotwindow);
 			}
-			Gtk::TreeModelColumn<Glib::ustring> col_filename_full;
-			Gtk::TreeModelColumn<Glib::ustring> col_filename_basename;
-			Gtk::TreeModelColumn<Glib::ustring> col_filename_dirname;
+			Gtk::TreeModelColumn<std::string> col_filename_full;
+			Gtk::TreeModelColumn<std::string> col_filename_basename;
+			Gtk::TreeModelColumn<std::string> col_filename_dirname;
 			Gtk::TreeModelColumn<Chi> col_chi;
+			Gtk::TreeModelColumn<BAM::PlPlotWindow *> col_plplotwindow;
 	};
 	ChiFilesColumns chi_files_columns;
 	Gtk::Button open;
@@ -47,6 +50,7 @@ public:
 	void on_open_clicked();
 	void on_convert_clicked();
 	bool on_backspace_clicked(GdkEventKey *key);
+	void on_file_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
 };
 
 

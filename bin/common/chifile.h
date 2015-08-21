@@ -33,6 +33,12 @@ public:
 	std::vector<double> GetYVector() {
 		return y_values;
 	}
+	std::string GetXTitle() {
+		return x_title;
+	}
+	std::string GetYTitle() {
+		return y_title;
+	}
 private:
 	std::string x_title;
 	std::string y_title;

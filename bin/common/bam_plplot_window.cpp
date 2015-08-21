@@ -2,15 +2,14 @@
 #include <algorithm>
 
 BAM::PlPlotWindow::PlPlotWindow(
-  std::vector<double> &x_orig,
-  std::vector<double> &y_orig,
+  const std::vector<double> &x_orig,
+  const std::vector<double> &y_orig,
   std::string title,
   std::string x_axis,
   std::string y_axis) :
   BAM::PlPlotWindow::PlPlotWindow(
     std::vector<Gtk::PLplot::PlotData2D>{Gtk::PLplot::PlotData2D(x_orig, y_orig)},
-    title, x_axis, y_axis) {
-}
+    title, x_axis, y_axis) {}
 
 BAM::PlPlotWindow::PlPlotWindow(
   const std::vector<Gtk::PLplot::PlotData2D> &data,
@@ -28,6 +27,7 @@ BAM::PlPlotWindow::PlPlotWindow(
         )
       )
     );
+    dynamic_cast<Gtk::PLplot::Plot2D *>(drawingareas[i]->get_plot(0))->hide_legend();
   }
   create();
 }

@@ -51,6 +51,7 @@ Chi2PdhWindow::Chi2PdhWindow() : convert("Convert!"),
 
 	signal_delete_event().connect(sigc::mem_fun(*this, &Chi2PdhWindow::on_delete_event));
 	tv.signal_key_press_event().connect(sigc::mem_fun(*this, &Chi2PdhWindow::on_backspace_clicked));
+	tv.signal_row_activated().connect(sigc::mem_fun(*this, &Chi2PdhWindow::on_file_activated));
 	show_all_children();
 }
 
@@ -73,7 +74,7 @@ void Chi2PdhWindow::on_convert_clicked() {
 		Chi chi = row[chi_files_columns.col_chi];
 
 		//try writing to file
-		std::string pdhfile = Glib::locale_from_utf8(row[chi_files_columns.col_filename_full]);
+		std::string pdhfile = row[chi_files_columns.col_filename_full];
 		pdhfile.replace(pdhfile.end()-3, pdhfile.end(), "pdh");
 
 		std::cout << "Filename: " << pdhfile << std::endl;
@@ -166,6 +167,7 @@ void Chi2PdhWindow::on_open_clicked() {
 			row[chi_files_columns.col_filename_basename] = Glib::path_get_basename(*it);
 			row[chi_files_columns.col_filename_dirname] = Glib::path_get_dirname(*it);
 			row[chi_files_columns.col_chi] = chi;
+			row[chi_files_columns.col_plplotwindow] = nullptr;
 		}
 		catch (std::exception &e) {
       std::cerr << "Exception caught: " << e.what() << std::endl;
@@ -195,6 +197,9 @@ bool Chi2PdhWindow::on_backspace_clicked(GdkEventKey *event) {
     std::vector<Gtk::TreeModel::Path> paths = selection->get_selected_rows();
     for (std::vector<Gtk::TreeModel::Path>::reverse_iterator rit = paths.rbegin() ; rit != paths.rend() ; ++rit) {
       Gtk::TreeModel::Row row = *(model->get_iter(*rit));
+			if (row[chi_files_columns.col_plplotwindow] != nullptr) {
+				delete row[chi_files_columns.col_plplotwindow];
+			}
       model->erase(row);
     }
     if (model->children().size() > 0) {
@@ -203,7 +208,33 @@ bool Chi2PdhWindow::on_backspace_clicked(GdkEventKey *event) {
     else {
 			convert.set_sensitive(false);
     }
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
+}
+
+void Chi2PdhWindow::on_file_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
+
+  //file was double-clicked -> open plot window
+  //first determine which asc file was activated
+	Gtk::TreeModel::Row row = *(model->get_iter(path));
+  std::cout << "File double-clicked: " << std::string(row[chi_files_columns.col_filename_full]) << std::endl;
+  Chi chi = row[chi_files_columns.col_chi];
+	BAM::PlPlotWindow *plplotwindow = row[chi_files_columns.col_plplotwindow];
+	if (plplotwindow) {
+		plplotwindow->show();
+		return;
+	}
+
+	plplotwindow = new BAM::PlPlotWindow(
+		chi.GetXVector(),
+		chi.GetYVector(),
+		row[chi_files_columns.col_filename_full],
+		chi.GetXTitle(),
+		chi.GetYTitle()
+	);
+  plplotwindow->set_transient_for(*this);
+	plplotwindow->property_destroy_with_parent() = true;
+	plplotwindow->show();
+	row[chi_files_columns.col_plplotwindow] = plplotwindow;
 }
