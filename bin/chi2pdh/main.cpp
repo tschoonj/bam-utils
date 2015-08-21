@@ -11,6 +11,11 @@ int main(int argc, char **argv) {
 #if defined(G_OS_WIN32)
         setlocale(LC_ALL,"English_United States");
         //g_setenv("LANG","en_US",TRUE);
+	//set PLPLOT_LIB
+	gchar *installation_dir = g_win32_get_package_installation_directory_of_module(NULL);
+	std::string path_to_plplot(Glib::build_filename(installation_dir, "Share", "plplot"));
+	Glib::setenv("PLPLOT_LIB", path_to_plplot, true);
+	g_free(installation_dir);
 #else
         Glib::setenv("LANG","en_US",TRUE);
 #endif
